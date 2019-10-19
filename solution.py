@@ -31,11 +31,11 @@ class ASARProblem(search.Problem):
                     l.append(string[2:].split(" "))
                 elif string[0] == "C":
                     c.append(string[2:].split(" "))
-            self.a = tuple(a)
-            self.p = tuple(p)
-            self.l = tuple(l)
-            self.c = tuple(c)
-            return self
+        self.a = tuple(a)
+        self.p = tuple(p)
+        self.l = tuple(l)
+        self.c = tuple(c)
+        return self
 
     def actions(self, state):
         """Return the actions that can be executed in the given
