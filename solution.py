@@ -78,7 +78,7 @@ class ASARProblem(search.Problem):
 #####################################
 
 if len(sys.argv)>1:
-    solver = ASARProblem(sys.argv[1])
+    pb = ASARProblem(sys.argv[1])
     print(solver.a)
     print(solver.p)
     print(solver.l)
