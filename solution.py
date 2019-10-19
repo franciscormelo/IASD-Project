@@ -20,17 +20,17 @@ class ASARProblem(search.Problem):
         with open(filename) as fh:
             lines = fh.read().splitlines()
 
-            file = list(filter(None,lines))
-            a,p,l,c = ([] for i in range(4))
-            for string in file:
-                if string[0] == "A":
-                    a.append(string[2:].split(" "))
-                elif string[0] == "P" :
-                    p.append(string[2:].split(" "))
-                elif string[0] == "L":
-                    l.append(string[2:].split(" "))
-                elif string[0] == "C":
-                    c.append(string[2:].split(" "))
+        file = list(filter(None,lines)) # removes blank lines
+        a,p,l,c = ([] for i in range(4))
+        for string in file:
+            if string[0] == "A":
+                a.append(string[2:].split(" "))
+            elif string[0] == "P" :
+                p.append(string[2:].split(" "))
+            elif string[0] == "L":
+                l.append(string[2:].split(" "))
+            elif string[0] == "C":
+                c.append(string[2:].split(" "))
         self.a = tuple(a)
         self.p = tuple(p)
         self.l = tuple(l)
