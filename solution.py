@@ -79,13 +79,13 @@ class ASARProblem(search.Problem):
 
 if len(sys.argv)>1:
     pb = ASARProblem(sys.argv[1])
-    print(solver.a)
-    print(solver.p)
-    print(solver.l)
-    print(solver.c)
+    print(pb.a)
+    print(pb.p)
+    print(pb.l)
+    print(pb.c)
     print()
-    print(solver.initial)
-    print(solver.goal)
+    print(pb.initial)
+    print(pb.goal)
 
 else:
     print("Usage: %s <filename>"%(sys.argv[0]))
