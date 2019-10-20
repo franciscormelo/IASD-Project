@@ -9,16 +9,16 @@ class ASARProblem(search.Problem):
     """Airline Scheduling and Routing Problem"""
 
 
-    def __init__(self, filename):
+    def __init__(self, fh):
         """ Define goal state and initialize a problem """
-        self = self.load(filename)
+        self = self.load(fh)
         #Problem.__init__(self, initial, goal)
         search.Problem.__init__(self, 1,1)
 
-    def load(self,filename):
+    def load(self,fh):
         "loads input file"
-        with open(filename) as fh:
-            lines = fh.read().splitlines()
+
+        lines = fh.read().splitlines()
 
         file = list(filter(None,lines)) # removes blank lines
         a,p,l,c = ([] for i in range(4))
@@ -78,7 +78,8 @@ class ASARProblem(search.Problem):
 #####################################
 
 if len(sys.argv)>1:
-    pb = ASARProblem(sys.argv[1])
+    with open(sys.argv[1]) as fh:
+        pb = ASARProblem(fh)
     print(pb.a)
     print(pb.p)
     print(pb.l)
