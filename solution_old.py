@@ -21,29 +21,20 @@ class ASARProblem(search.Problem):
         lines = fh.read().splitlines()
 
         file = list(filter(None,lines)) # removes blank lines
-        a,p,l,c = ({} for i in range(4))
-
+        a,p,l,c = ([] for i in range(4))
         for string in file:
             if string[0] == "A":
-                ax = string[2:].split(" ")
-                a.update({ax[0]:tuple(ax[1:])})
-
+                a.append(string[2:].split(" "))
             elif string[0] == "P" :
-                px = string[2:].split(" ")
-                p.update({px[0]:px[1]})
-
+                p.append(string[2:].split(" "))
             elif string[0] == "L":
-                lx = string[2:].split(" ")
-                l.update({tuple(lx[0:2]):tuple(lx[2:])})
-
+                l.append(string[2:].split(" "))
             elif string[0] == "C":
-                cx = string[2:].split(" ")
-                c.update({cx[0]:cx[1]})
-
-        self.a = a
-        self.p = p
-        self.l = l
-        self.c = c
+                c.append(string[2:].split(" "))
+        self.a = tuple(a)
+        self.p = tuple(p)
+        self.l = tuple(l)
+        self.c = tuple(c)
 
         return self
 
@@ -129,26 +120,16 @@ if len(sys.argv)>1:
     #print()
     #print(pb.initial)
     #print(pb.goal)
-    #state = [pb.p[0][0],pb.p[0][1],pb.a[0][0], pb.a[0][1]]
+    state = [pb.p[0][0],pb.p[0][1],pb.a[0][0], pb.a[0][1]]
 
-    #print(state)
-    #actions = pb.actions(state)
+    print(state)
+    actions = pb.actions(state)
 
-    #print(actions)
-    #print("#########")
+    print(actions)
+    print("#########")
 
-    #print(pb.result(state,actions[0]))
+    print(pb.result(state,actions[0]))
 
-
-    print(pb.a)
-    #print(pb.a.keys())
-
-    #print(pb.a["LPMA"])
-
-    print(pb.p)
-    print(pb.l)
-    print(pb.c)
-    print(pb.c["a320"])
 
 else:
     print("Usage: %s <filename>"%(sys.argv[0]))
