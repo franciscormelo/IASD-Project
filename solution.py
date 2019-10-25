@@ -53,16 +53,10 @@ class ASARProblem(search.Problem):
         many actions, consider yielding them one at a time in an
         iterator, rather than building them all at once."""
         actions = []
-        for x in self.l:
-            flag1 = False
-            flag2 = True
-            for i in x:
-                if i == state[2] and x.index(i)==0 : #verificar quais as legs com aeroporto de partidad do estado
-                    flag1 = True  #maneira horrivel de fazer mas funciona
-                if i == state[1]: #quais as legs que podem ser realizadas com o aviao do estado
-                    flag2 = True
-            if flag1 and flag2:
-                actions.append(x)
+
+        for key in self.l:
+            if key[0] == state:
+                actions.append(key)
         return actions
 
     def result(self, state, action):
@@ -76,6 +70,7 @@ class ASARProblem(search.Problem):
         h = int(time1[0:2]) + int(time2[0:2])
         m = int(time1[2:4]) + int(time2[2:4])
 
+        #time calculator using string data
         if m > 60:
             m = m - 60
             h = h + 1
@@ -150,5 +145,16 @@ if len(sys.argv)>1:
     print(pb.c)
     print(pb.c["a320"])
 
+    print("##################")
+    state = "LPMA"
+    print(state)
+    actions = pb.actions(state)
+    print(actions)
+    
+    print("##################")
+    state = "LPPT"
+    print(state)
+    actions = pb.actions(state)
+    print(actions)
 else:
     print("Usage: %s <filename>"%(sys.argv[0]))
