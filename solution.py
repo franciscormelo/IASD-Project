@@ -9,11 +9,11 @@ class ASARProblem(search.Problem):
     """Airline Scheduling and Routing Problem"""
 
 
-    def __init__(self, fh):
+    def __init__(self):
         """ Define goal state and initialize a problem """
-        self = self.load(fh)
+
         #Problem.__init__(self, initial, goal)
-        search.Problem.__init__(self, 1,1)
+        #search.Problem.__init__(self, 1,1)
 
     def load(self,fh):
         "loads input file"
@@ -52,11 +52,23 @@ class ASARProblem(search.Problem):
         state. The result would typically be a list, but if there are
         many actions, consider yielding them one at a time in an
         iterator, rather than building them all at once."""
-        actions = []
 
-        for key in self.l:
-            if key[0] == state:
-                actions.append(key)
+        actions = {}
+
+        for (airplane,info) in state.items():
+            airplane_type = self.p[airplane]
+            rotation_time = self.c[airplane_type]
+
+            actions.update({ airplane: []})
+
+            for (leg,details) in self.l.items():
+                if leg[0] == info[1]: #legs that departure from the same airport of the state
+                    fligh_duration = details[0]
+                    #check if the arrival time is after the closing time of the airport
+                    arrival = time_sum(info[0],fligh_duration)
+                    print(arrival)
+                    actions[airplane].append(leg)
+
         return actions
 
     def result(self, state, action):
@@ -104,57 +116,56 @@ class ASARProblem(search.Problem):
         and action. The default method costs 1 for every step in the path."""
         return c + 1
 
-    def value(self, state):
-        """For optimization problems, each state has a value. Hill-climbing
-        and related algorithms try to maximize this value."""
-        raise NotImplementedError
 
     def heuristic(self,n):
         return
+
+    def save(self,fh,state):
+            return
+
+
+def time_sum(time1, time2):
+    h = int(time1[0:2]) + int(time2[0:2])
+    m = int(time1[2:4]) + int(time2[2:4])
+
+    #time calculator using string data
+    if m > 60:
+        m = m - 60
+        h = h + 1
+    if h < 10:
+        time = "0" + str(h)
+    else:
+        time = str(h)
+    if m < 10:
+        time = time + "0" + str(m)
+    else:
+        time = time + str(m)
+
+    return time
 
 #####################################
 
 if len(sys.argv)>1:
     with open(sys.argv[1]) as fh:
-        pb = ASARProblem(fh)
-    #print(pb.a)
-    #print(pb.p)
-    #print(pb.l)
-    #print(pb.c)
-    #print()
-    #print(pb.initial)
-    #print(pb.goal)
-    #state = [pb.p[0][0],pb.p[0][1],pb.a[0][0], pb.a[0][1]]
-
-    #print(state)
-    #actions = pb.actions(state)
-
-    #print(actions)
-    #print("#########")
-
-    #print(pb.result(state,actions[0]))
+        pb = ASARProblem()
+        pb.load(fh)
 
 
     print(pb.a)
-    #print(pb.a.keys())
-
-    #print(pb.a["LPMA"])
-
     print(pb.p)
     print(pb.l)
     print(pb.c)
-    print(pb.c["a320"])
 
     print("##################")
-    state = "LPMA"
+    state = { "CS-TUA":("0600","LPPT"), "CS-TVA":("0800","LPFR")}
+
     print(state)
+
+
     actions = pb.actions(state)
     print(actions)
-    
-    print("##################")
-    state = "LPPT"
-    print(state)
-    actions = pb.actions(state)
-    print(actions)
+
+
+
 else:
     print("Usage: %s <filename>"%(sys.argv[0]))
