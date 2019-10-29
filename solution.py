@@ -62,12 +62,16 @@ class ASARProblem(search.Problem):
             actions.update({ airplane: []})
 
             for (leg,details) in self.l.items():
-                if leg[0] == info[1]: #legs that departure from the same airport of the state
+                if leg[0] == info[1]: #Check if the leg departure airport is equal to the state airportar departure for that aricraft
                     fligh_duration = details[0]
-                    #check if the arrival time is after the closing time of the airport
-                    arrival = time_sum(info[0],fligh_duration)
-                    print(arrival)
-                    actions[airplane].append(leg)
+
+                    arrival = time_sum(info[0],fligh_duration) #check if the arrival time is after the closing time of the airport
+
+                    if arrival <= self.a[leg[1]][1]: # arrival of aircraft > closing time
+                        actions[airplane].append(leg)
+                        print(arrival)
+
+
 
         return actions
 
@@ -76,26 +80,7 @@ class ASARProblem(search.Problem):
         action in the given state. The action must be one of
         self.actions(state)."""
 
-        time1 = state[3]
-        time2 = action[2]
-
-        h = int(time1[0:2]) + int(time2[0:2])
-        m = int(time1[2:4]) + int(time2[2:4])
-
-        #time calculator using string data
-        if m > 60:
-            m = m - 60
-            h = h + 1
-        if h < 10:
-            time = "0" + str(h)
-        else:
-            time = str(h)
-        if m < 10:
-            time = time + "0" + str(m)
-        else:
-            time = time + str(m)
-
-        return state + action[1:2] + [time]
+        return state + action[1:2]
 
 
     def goal_test(self, state):
@@ -125,10 +110,11 @@ class ASARProblem(search.Problem):
 
 
 def time_sum(time1, time2):
+    """ Time calculator using string data """
     h = int(time1[0:2]) + int(time2[0:2])
     m = int(time1[2:4]) + int(time2[2:4])
 
-    #time calculator using string data
+
     if m > 60:
         m = m - 60
         h = h + 1
@@ -157,12 +143,13 @@ if len(sys.argv)>1:
     print(pb.c)
 
     print("##################")
-    state = { "CS-TUA":("0600","LPPT"), "CS-TVA":("0800","LPFR")}
-
+    state = { "CS-TUA":("1930","LPPT"), "CS-TVA":("0800","LPFR")}
+    print("STATE")
     print(state)
 
 
     actions = pb.actions(state)
+    print("ACTIONS")
     print(actions)
 
 
