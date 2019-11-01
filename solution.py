@@ -45,7 +45,7 @@ class ASARProblem(search.Problem):
         self.l = l
         self.c = c
 
-        self.initial = { "CS-TUA":["0600","LPPT"], "CS-TVA":["0800","LPFR"],"LEGS": list(pb.l.keys())}
+        self.initial = { "CS-TUA":["0600","LPPT"], "CS-TVA":["0800","LPFR"],"LEGS": list(pb.l.keys()),"PROFIT": 0}
         return self
 
     def actions(self, state):
@@ -58,7 +58,7 @@ class ASARProblem(search.Problem):
 
         for (airplane,info) in state.items():
 
-            if airplane != "LEGS":
+            if airplane != "LEGS" and airplane != "PROFIT":
 
                 for leg in state["LEGS"]:
 
@@ -85,6 +85,15 @@ class ASARProblem(search.Problem):
         state[action[0]][1] = action[2]
 
         state["LEGS"].remove(tuple(action[1:]))
+
+        leg = tuple(action[1:3])
+        airplane_type = self.p[action[0]]
+
+
+        index_cost = self.l[leg].index(airplane_type) + 1
+        link_cost = self.l[leg][index_cost]
+
+        state["PROFIT"] = state["PROFIT"] + int(link_cost)
 
         return state
 
@@ -131,6 +140,8 @@ class ASARProblem(search.Problem):
         return self.h
 
     def save(self,fh,state):
+
+            fh.write("P "+ str (new_state["PROFIT"]))
             return
 
 
@@ -160,11 +171,12 @@ if len(sys.argv)>1:
     with open(sys.argv[1]) as fh:
         pb = ASARProblem()
         pb.load(fh)
+        fh.close()
 
-    print(pb.a)
-    print(pb.p)
-    print(pb.l)
-    print(pb.c)
+    #print(pb.a)
+    #print(pb.p)
+    #print(pb.l)
+    #print(pb.c)
 
     print("##################")
     #initial state for testing
@@ -200,7 +212,12 @@ if len(sys.argv)>1:
     print(pb.goal_test(state))
     h =  pb.heuristic
 
-    search.astar_search(pb,h)
+    #search.astar_search(pb,h)
+
+    with open("OUTPUT_TESTE.txt","w+") as fh:
+
+        pb.save(fh,new_state)
+
 
 
 else:
