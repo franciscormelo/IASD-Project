@@ -45,6 +45,7 @@ class ASARProblem(search.Problem):
         self.l = l
         self.c = c
 
+        self.initial = { "CS-TUA":["0600","LPPT"], "CS-TVA":["0800","LPFR"],"LEGS": list(pb.l.keys())}
         return self
 
     def actions(self, state):
@@ -59,10 +60,10 @@ class ASARProblem(search.Problem):
 
             if airplane != "LEGS":
 
-                for (leg,details) in state["LEGS"].items():
+                for leg in state["LEGS"]:
 
                     if leg[0] == info[1]: #Check if the leg departure airport is equal to the state airport departure for that aricraft
-                        fligh_duration = details[0]
+                        fligh_duration = self.l[leg][0]
                         arrival = time_sum(info[0],fligh_duration) #check if the arrival time is after the closing time of the airport
 
                         if arrival <= self.a[leg[1]][1]: # arrival of aircraft > closing time
@@ -82,7 +83,8 @@ class ASARProblem(search.Problem):
         state[action[0]][0] =  time_sum(arrival, protation_time)
 
         state[action[0]][1] = action[2]
-        del state["LEGS"][tuple(action[1:])]
+
+        state["LEGS"].remove(tuple(action[1:]))
 
         return state
 
@@ -94,10 +96,19 @@ class ASARProblem(search.Problem):
         state to self.goal or checks for state in self.goal if it is a
         list, as specified in the constructor. Override this method if
         checking against a single self.goal is not enough."""
-        if isinstance(self.goal, list):
-            return is_in(state, self.goal)
+        if not state["LEGS"]:
+
+            for (airplane,info) in state.items():
+                if airplane != "LEGS":
+                    if info[1] != self.initial[airplane][1]:
+                        return False
+            return True
         else:
-            return state == self.goal
+            return False
+                    #if isinstance(self.goal, list):
+                    #    return is_in(state, self.goal)
+                    #else:
+            #return state == self.goal
 
     def path_cost(self, c, state1, action, state2):
         """Return the cost of a solution path that arrives at state2 from
@@ -105,11 +116,19 @@ class ASARProblem(search.Problem):
         is such that the path doesn't matter, this function will only look at
         state2.  If the path does matter, it will consider c and maybe state1
         and action. The default method costs 1 for every step in the path."""
-        return c + 1
+        leg = tuple(action[1:3])
+        airplane_type = self.p[action[0]]
+
+
+        index_cost = self.l[leg].index(airplane_type) + 1
+        link_cost = self.l[leg][index_cost]
+
+        return c + (1/int(link_cost))
 
 
     def heuristic(self,n):
-        return
+        self.h = 0
+        return self.h
 
     def save(self,fh,state):
             return
@@ -135,22 +154,21 @@ def time_sum(time1, time2):
 
     return time
 
-#####################################
+##################################### MAIN ###################################
 
 if len(sys.argv)>1:
     with open(sys.argv[1]) as fh:
         pb = ASARProblem()
         pb.load(fh)
 
-
-    #print(pb.a)
-    #print(pb.p)
-    #print(pb.l)
-    #print(pb.c)
+    print(pb.a)
+    print(pb.p)
+    print(pb.l)
+    print(pb.c)
 
     print("##################")
     #initial state for testing
-    state = { "CS-TUA":["0600","LPPT"], "CS-TVA":["0800","LPFR"],"LEGS": pb.l} #*****meti lista para poder alterar o estado, testar alternativa com tuple e copiar informações criando novo estado em vez de substituir este
+    state = pb.initial
     print("---STATE---")
     print(state)
     print()
@@ -169,18 +187,20 @@ if len(sys.argv)>1:
     print("---NEW STATE----")
     new_state = pb.result(state,action)
     print(new_state)
-##### round 2
-    print()
-    actions = pb.actions(new_state)
-    print(actions)
-
-    action = actions[1]
-
-    new_state = pb.result(new_state,action)
-
-    print(new_state)
 
 
+########
+    print("---PATH COST----")
+    print("Path Cost")
+    cost = pb.path_cost(0, pb.initial, action, new_state)
+    print(cost)
+
+#########
+    print("GOAL TEST")
+    print(pb.goal_test(state))
+    h =  pb.heuristic
+
+    search.astar_search(pb,h)
 
 
 else:
