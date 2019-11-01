@@ -53,26 +53,20 @@ class ASARProblem(search.Problem):
         many actions, consider yielding them one at a time in an
         iterator, rather than building them all at once."""
 
-        actions = {}
+        actions = []
 
         for (airplane,info) in state.items():
-            airplane_type = self.p[airplane]
-            rotation_time = self.c[airplane_type]
 
-            actions.update({ airplane: []})
+            if airplane != "LEGS":
 
-            for (leg,details) in self.l.items():
-                if leg[0] == info[1]: #Check if the leg departure airport is equal to the state airportar departure for that aricraft
-                    fligh_duration = details[0]
+                for (leg,details) in state["LEGS"].items():
 
-                    arrival = time_sum(info[0],fligh_duration) #check if the arrival time is after the closing time of the airport
+                    if leg[0] == info[1]: #Check if the leg departure airport is equal to the state airport departure for that aricraft
+                        fligh_duration = details[0]
+                        arrival = time_sum(info[0],fligh_duration) #check if the arrival time is after the closing time of the airport
 
-                    if arrival <= self.a[leg[1]][1]: # arrival of aircraft > closing time
-                        actions[airplane].append(leg)
-                        print(arrival)
-
-
-
+                        if arrival <= self.a[leg[1]][1]: # arrival of aircraft > closing time
+                            actions.append([airplane,leg[0],leg[1]])
         return actions
 
     def result(self, state, action):
@@ -80,10 +74,22 @@ class ASARProblem(search.Problem):
         action in the given state. The action must be one of
         self.actions(state)."""
 
-        return state + action[1:2]
+        airplane_type = self.p[action[0]]
+        protation_time = self.c[airplane_type]
+
+        flight_duration = self.l[tuple(action[1:])][0]
+        arrival = time_sum(state[action[0]][0],flight_duration)
+        state[action[0]][0] =  time_sum(arrival, protation_time)
+
+        state[action[0]][1] = action[2]
+        del state["LEGS"][tuple(action[1:])]
+
+        return state
 
 
     def goal_test(self, state):
+
+        # estado inicial igual ao estado final e lista de legs vazia
         """Return True if the state is a goal. The default method compares the
         state to self.goal or checks for state in self.goal if it is a
         list, as specified in the constructor. Override this method if
@@ -137,20 +143,43 @@ if len(sys.argv)>1:
         pb.load(fh)
 
 
-    print(pb.a)
-    print(pb.p)
-    print(pb.l)
-    print(pb.c)
+    #print(pb.a)
+    #print(pb.p)
+    #print(pb.l)
+    #print(pb.c)
 
     print("##################")
-    state = { "CS-TUA":("1930","LPPT"), "CS-TVA":("0800","LPFR")}
-    print("STATE")
+    #initial state for testing
+    state = { "CS-TUA":["0600","LPPT"], "CS-TVA":["0800","LPFR"],"LEGS": pb.l} #*****meti lista para poder alterar o estado, testar alternativa com tuple e copiar informações criando novo estado em vez de substituir este
+    print("---STATE---")
     print(state)
+    print()
 
 
     actions = pb.actions(state)
-    print("ACTIONS")
+    print("---ACTIONS---")
     print(actions)
+    print()
+
+    print("---ACTION---")
+    action = actions[0]
+    print(action)
+    print()
+
+    print("---NEW STATE----")
+    new_state = pb.result(state,action)
+    print(new_state)
+##### round 2
+    print()
+    actions = pb.actions(new_state)
+    print(actions)
+
+    action = actions[1]
+
+    new_state = pb.result(new_state,action)
+
+    print(new_state)
+
 
 
 
