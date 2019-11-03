@@ -12,6 +12,9 @@ class ASARProblem(search.Problem):
     def __init__(self):
         """ Define goal state and initialize a problem """
 
+        #Problem.__init__(self, initial, goal)
+        #search.Problem.__init__(self, 1,1)
+
     def load(self,fh):
         "loads input file"
 
@@ -42,11 +45,12 @@ class ASARProblem(search.Problem):
         self.l = l
         self.c = c
 
+        ## INICIALIZAR AQUI ESTADO INICIAL USANDO UMA CLASSE!!!!
 
-        planes = { "CS-TUA":["0600","LPPT"], "CS-TVA":["0800","LPFR"]} #planes initial state
-        legs = list(pb.l.keys())
-        self. initial = statedict(legs, planes, 0)
-        #self.initial = { "CS-TUA":["0600","LPPT"], "CS-TVA":["0800","LPFR"],"LEGS": list(pb.l.keys()),"PROFIT": 0}
+        ## self.initial = classe bla bla bla
+
+
+        self.initial = { "CS-TUA":["0600","LPPT"], "CS-TVA":["0800","LPFR"],"LEGS": list(pb.l.keys()),"PROFIT": 0}
         return self
 
     def actions(self, state):
@@ -57,14 +61,18 @@ class ASARProblem(search.Problem):
 
         actions = []
 
-        for (airplane,info) in state.planes.items():
-            for leg in state.legs:
-                if leg[0] == info[1]: #Check if the leg departure airport is equal to the state airport departure for that aricraft
-                    fligh_duration = self.l[leg][0]
-                    arrival = time_sum(info[0],fligh_duration) #check if the arrival time is after the closing time of the airport
+        for (airplane,info) in state.items():
 
-                    if arrival <= self.a[leg[1]][1]: # arrival of aircraft > closing time
-                        actions.append([airplane,leg[0],leg[1]])
+            if airplane != "LEGS" and airplane != "PROFIT":
+
+                for leg in state["LEGS"]:
+
+                    if leg[0] == info[1]: #Check if the leg departure airport is equal to the state airport departure for that aricraft
+                        fligh_duration = self.l[leg][0]
+                        arrival = time_sum(info[0],fligh_duration) #check if the arrival time is after the closing time of the airport
+
+                        if arrival <= self.a[leg[1]][1]: # arrival of aircraft > closing time
+                            actions.append([airplane,leg[0],leg[1]])
         return actions
 
     def result(self, state, action):
@@ -76,12 +84,12 @@ class ASARProblem(search.Problem):
         protation_time = self.c[airplane_type]
 
         flight_duration = self.l[tuple(action[1:])][0]
-        arrival = time_sum(state.planes[action[0]][0],flight_duration)
-        state.planes[action[0]][0] =  time_sum(arrival, protation_time)
+        arrival = time_sum(state[action[0]][0],flight_duration)
+        state[action[0]][0] =  time_sum(arrival, protation_time)
 
-        state.planes[action[0]][1] = action[2]
+        state[action[0]][1] = action[2]
 
-        state.legs.remove(tuple(action[1:]))
+        state["LEGS"].remove(tuple(action[1:]))
 
         leg = tuple(action[1:3])
         airplane_type = self.p[action[0]]
@@ -90,7 +98,7 @@ class ASARProblem(search.Problem):
         index_cost = self.l[leg].index(airplane_type) + 1
         link_cost = self.l[leg][index_cost]
 
-        state.profit= state.profit + int(link_cost)
+        state["PROFIT"] = state["PROFIT"] + int(link_cost)
 
         return state
 
@@ -102,14 +110,19 @@ class ASARProblem(search.Problem):
         state to self.goal or checks for state in self.goal if it is a
         list, as specified in the constructor. Override this method if
         checking against a single self.goal is not enough."""
-        if not state.legs:
+        if not state["LEGS"]:
 
-            for (airplane,info) in state.planes.items():
-                if info[1] != self.initial.planes[airplane][1]:
-                    return False
+            for (airplane,info) in state.items():
+                if airplane != "LEGS":
+                    if info[1] != self.initial[airplane][1]:
+                        return False
             return True
         else:
             return False
+                    #if isinstance(self.goal, list):
+                    #    return is_in(state, self.goal)
+                    #else:
+            #return state == self.goal
 
     def path_cost(self, c, state1, action, state2):
         """Return the cost of a solution path that arrives at state2 from
@@ -133,7 +146,7 @@ class ASARProblem(search.Problem):
 
     def save(self,fh,state):
 
-        fh.write("P "+ str (state.profit))
+        fh.write("P "+ str (new_state["PROFIT"]))
         return
 
 
@@ -158,20 +171,16 @@ def time_sum(time1, time2):
     return time
 
 ### TESTES
-class statedict(dict):
-    """ State Class """
-    def __init__(self, legs, planes, profit): ##construtor da classe
-        self.legs = legs
-        self.profit = 0
-        self.planes = planes
-
-    def print_state(self):
-        print(self.planes)
-        print(self.legs)
-        print(self.profit)
-
+class hashabledict(dict):
+    def __init__(self): ##construtor da classe
+        self.a = 2
     def __hash__(self):
         return hash(tuple(sorted(self.items())))
+
+
+class Foo(object):
+    def __init__(self):
+        pass
 ### TESTES
 
 ##################################### MAIN ###################################
@@ -191,7 +200,7 @@ if len(sys.argv)>1:
     #initial state for testing
     state = pb.initial
     print("---STATE---")
-    state.print_state()
+    print(state)
     print()
 
 
@@ -207,7 +216,7 @@ if len(sys.argv)>1:
 
     print("---NEW STATE----")
     new_state = pb.result(state,action)
-    new_state.print_state()
+    print(new_state)
 
 
 ########
@@ -221,14 +230,21 @@ if len(sys.argv)>1:
     print(pb.goal_test(state))
     h =  pb.heuristic
 
-    test = search.astar_search(pb,h)
-    print(test)
+    #search.astar_search(pb,h)
 
+### TESTES
+    myinstance = Foo()
+    mydict = {myinstance : 'Hello world'}
+    print (mydict[myinstance])
 
+    state = hashabledict()
+    print(state.a)
 #### TESTES
     with open("OUTPUT_TESTE.txt","w+") as fh:
 
         pb.save(fh,new_state)
+
+
 
 else:
     print("Usage: %s <filename>"%(sys.argv[0]))
