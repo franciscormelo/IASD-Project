@@ -160,7 +160,7 @@ def time_sum(time1, time2):
 ### TESTES
 class statedict(dict):
     """ State Class """
-    def __init__(self, legs, planes, profit): ##construtor da classe
+    def __init__(self, legs, planes, profit):
         self.legs = legs
         self.profit = 0
         self.planes = planes
