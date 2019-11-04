@@ -43,10 +43,11 @@ class ASARProblem(search.Problem):
         self.c = c
 
 
-        planes = { "CS-TUA":["0600","LPPT"], "CS-TVA":["0800","LPFR"]} #planes initial state
-        legs = list(pb.l.keys())
-        self. initial = statedict(legs, planes, 0)
-        #self.initial = { "CS-TUA":["0600","LPPT"], "CS-TVA":["0800","LPFR"],"LEGS": list(pb.l.keys()),"PROFIT": 0}
+        planes = { "CS-TUA":["0800","LPMA"], "CS-TVA":["0800","LPFR"]} #planes initial state
+
+        legs = list(l.keys())
+        self.initial = statedict(legs, planes, 0)
+
         return self
 
     def actions(self, state):
@@ -61,7 +62,7 @@ class ASARProblem(search.Problem):
             for leg in state.legs:
                 if leg[0] == info[1]: #Check if the leg departure airport is equal to the state airport departure for that aricraft
                     fligh_duration = self.l[leg][0]
-                    arrival = time_sum(info[0],fligh_duration) #check if the arrival time is after the closing time of the airport
+                    arrival = state.time_sum(info[0],fligh_duration) #check if the arrival time is after the closing time of the airport
 
                     if arrival <= self.a[leg[1]][1]: # arrival of aircraft > closing time
                         actions.append([airplane,leg[0],leg[1]])
@@ -72,25 +73,35 @@ class ASARProblem(search.Problem):
         action in the given state. The action must be one of
         self.actions(state)."""
 
-        airplane_type = self.p[action[0]]
+        airplane_code = action[0]
+
+        airplane_type = self.p[airplane_code]
         protation_time = self.c[airplane_type]
 
-        flight_duration = self.l[tuple(action[1:])][0]
-        arrival = time_sum(state.planes[action[0]][0],flight_duration)
-        state.planes[action[0]][0] =  time_sum(arrival, protation_time)
+        departure = state.planes[airplane_code][0]
 
-        state.planes[action[0]][1] = action[2]
+        flight_duration = self.l[tuple(action[1:])][0]
+        arrival = state.time_sum(departure,flight_duration)
+        state.planes[airplane_code][0] =  state.time_sum(arrival, protation_time)
+
+        state.planes[airplane_code][1] = action[2]
 
         state.legs.remove(tuple(action[1:]))
 
         leg = tuple(action[1:3])
-        airplane_type = self.p[action[0]]
-
 
         index_cost = self.l[leg].index(airplane_type) + 1
         link_cost = self.l[leg][index_cost]
 
-        state.profit= state.profit + int(link_cost)
+        state.profit = state.profit + int(link_cost)
+
+        if airplane_code in state.schedule: #check if it is the first flight
+            state.schedule[airplane_code].append(departure)
+            state.schedule[airplane_code].append(action[1])
+            state.schedule[airplane_code].append(action[2])
+
+        else:
+            state.schedule.update({airplane_code:[departure, action[1], action[2]]})
 
         return state
 
@@ -103,7 +114,6 @@ class ASARProblem(search.Problem):
         list, as specified in the constructor. Override this method if
         checking against a single self.goal is not enough."""
         if not state.legs:
-
             for (airplane,info) in state.planes.items():
                 if info[1] != self.initial.planes[airplane][1]:
                     return False
@@ -120,7 +130,6 @@ class ASARProblem(search.Problem):
         leg = tuple(action[1:3])
         airplane_type = self.p[action[0]]
 
-
         index_cost = self.l[leg].index(airplane_type) + 1
         link_cost = self.l[leg][index_cost]
 
@@ -133,46 +142,54 @@ class ASARProblem(search.Problem):
 
     def save(self,fh,state):
 
+        for airplane in state.schedule:
+            fh.write(airplane + " ")
+            sp = str(state.schedule[airplane])
+            sp = sp.replace(',','').replace('[','').replace(']','').replace('\'','')
+            fh.write(sp + "\n")
+            
         fh.write("P "+ str (state.profit))
         return
 
 
-def time_sum(time1, time2):
-    """ Time calculator using string data """
-    h = int(time1[0:2]) + int(time2[0:2])
-    m = int(time1[2:4]) + int(time2[2:4])
 
 
-    if m > 60:
-        m = m - 60
-        h = h + 1
-    if h < 10:
-        time = "0" + str(h)
-    else:
-        time = str(h)
-    if m < 10:
-        time = time + "0" + str(m)
-    else:
-        time = time + str(m)
 
-    return time
-
-### TESTES
 class statedict(dict):
     """ State Class """
     def __init__(self, legs, planes, profit):
         self.legs = legs
         self.profit = 0
         self.planes = planes
+        self.schedule = {}
 
     def print_state(self):
-        print(self.planes)
-        print(self.legs)
-        print(self.profit)
+        print("PLANES INFO " + str(self.planes))
+        print("LEGS LEFT " + str(self.legs))
+        print("PLANES SCHEDULES " + str(self.schedule))
+        print("PROFIT " + str(self.profit))
 
     def __hash__(self):
         return hash(tuple(sorted(self.items())))
-### TESTES
+
+    def time_sum(self,time1, time2):
+        """ Time calculator using string data """
+        h = int(time1[0:2]) + int(time2[0:2])
+        m = int(time1[2:4]) + int(time2[2:4])
+
+        if m > 60:
+            m = m - 60
+            h = h + 1
+        if h < 10:
+            time = "0" + str(h)
+        else:
+            time = str(h)
+        if m < 10:
+            time = time + "0" + str(m)
+        else:
+            time = time + str(m)
+
+        return time
 
 ##################################### MAIN ###################################
 
@@ -186,43 +203,53 @@ if len(sys.argv)>1:
     #print(pb.p)
     #print(pb.l)
     #print(pb.c)
-
+#
     print("##################")
     #initial state for testing
     state = pb.initial
     print("---STATE---")
     state.print_state()
     print()
-
-
+#
+#
     actions = pb.actions(state)
     print("---ACTIONS---")
     print(actions)
     print()
-
+#
     print("---ACTION---")
     action = actions[0]
     print(action)
     print()
-
+#
     print("---NEW STATE----")
     new_state = pb.result(state,action)
     new_state.print_state()
-
-
+#
+#
+#######
+    print()
+    print("--- TESTE 2 ---")
+    actions = pb.actions(new_state)
+    print(actions)
+    action = actions[1]
+    print(action)
+    new_state = pb.result(state,action)
+    new_state.print_state()
+#
+######
 ########
-    print("---PATH COST----")
-    print("Path Cost")
+    print()
     cost = pb.path_cost(0, pb.initial, action, new_state)
-    print(cost)
-
+    print("---PATH COST---- " + str(cost))
+#
 #########
-    print("GOAL TEST")
-    print(pb.goal_test(state))
+    print("---GOAL TEST--- " + str(pb.goal_test(new_state)))
+
     h =  pb.heuristic
 
-    test = search.astar_search(pb,h)
-    print(test)
+    #test = search.astar_search(pb,h)
+    #print(test.print_state())
 
 
 #### TESTES
