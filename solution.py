@@ -142,17 +142,18 @@ class ASARProblem(search.Problem):
 
     def save(self,fh,state):
 
-        for airplane in state.schedule:
-            fh.write(airplane + " ")
-            sp = str(state.schedule[airplane])
-            sp = sp.replace(',','').replace('[','').replace(']','').replace('\'','')
-            fh.write(sp + "\n")
+        if state != None:
+            for airplane in state.schedule:
+                fh.write(airplane + " ")
+                sp = str(state.schedule[airplane])
+                sp = sp.replace(',','').replace('[','').replace(']','').replace('\'','')
+                fh.write(sp + "\n")
 
-        fh.write("P "+ str (state.profit))
+                fh.write("P "+ str (state.profit))
+        else:
+            fh.write("Infeasible")
+
         return
-
-
-
 
 
 class statedict(dict):
@@ -232,7 +233,7 @@ if len(sys.argv)>1:
     print("--- TESTE 2 ---")
     actions = pb.actions(new_state)
     print(actions)
-    action = actions[1]
+    action = actions[0]
     print(action)
     new_state = pb.result(state,action)
     new_state.print_state()
@@ -248,14 +249,15 @@ if len(sys.argv)>1:
 
     h =  pb.heuristic
 
-    #test = search.astar_search(pb,h)
-    #print(test.print_state())
+    test = search.astar_search(pb,h)
+    print(test)
 
 
 #### TESTES
     with open("OUTPUT_TESTE.txt","w+") as fh:
 
-        pb.save(fh,new_state)
+        #pb.save(fh,new_state)
+        pb.save(fh,test)
 
 else:
     print("Usage: %s <filename>"%(sys.argv[0]))
