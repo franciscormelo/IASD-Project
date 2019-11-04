@@ -147,7 +147,7 @@ class ASARProblem(search.Problem):
             sp = str(state.schedule[airplane])
             sp = sp.replace(',','').replace('[','').replace(']','').replace('\'','')
             fh.write(sp + "\n")
-            
+
         fh.write("P "+ str (state.profit))
         return
 
@@ -199,10 +199,10 @@ if len(sys.argv)>1:
         pb.load(fh)
         fh.close()
 
-    #print(pb.a)
-    #print(pb.p)
-    #print(pb.l)
-    #print(pb.c)
+    print(pb.a)
+    print(pb.p)
+    print(pb.l)
+    print(pb.c)
 #
     print("##################")
     #initial state for testing
