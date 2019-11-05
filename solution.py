@@ -43,10 +43,12 @@ class ASARProblem(search.Problem):
         self.c = c
 
 
-        planes = { "CS-TUA":["0800","LPMA"], "CS-TVA":["0800","LPFR"]} #planes initial state
+        #planes = { "CS-TUA":["0800","LPMA"], "CS-TVA":["0800","LPFR"]} #planes initial state
+        planes = {} #initially we don't have a plane and airport defined. The algorithm takes care of that
 
         legs = list(l.keys())
-        self.initial = statedict(legs, planes, 0)
+        #self.initial_state(a, legs, planes)
+        self.initial = StateDict(legs, planes, 0)
 
         return self
 
@@ -57,6 +59,12 @@ class ASARProblem(search.Problem):
         iterator, rather than building them all at once."""
 
         actions = []
+        # if dictionary is empty generate as actions all legs for all airplanes
+        if not state.planes:
+            for airplane in self.p:            
+                for legs in self.l:
+                    actions.append([airplane, legs[0], legs[1]])
+        print("actions_empty =", actions)
 
         for (airplane,info) in state.planes.items():
             for leg in state.legs:
@@ -73,20 +81,31 @@ class ASARProblem(search.Problem):
         action in the given state. The action must be one of
         self.actions(state)."""
 
+
         airplane_code = action[0]
 
-        airplane_type = self.p[airplane_code]
+        airplane_type = self.p[airplane_code]# class of the airplane. ex: a320
         protation_time = self.c[airplane_type]
 
-        departure = state.planes[airplane_code][0]
+        # fill initial state
+        if not state.planes:
+            for airport in self.a:
+                if airport == action[1]:
+                    departure = self.a.get(airport)[0]
+                    print("DEPARTURE = ", departure)
+        else:
+            departure = state.planes[airplane_code][0]
 
         flight_duration = self.l[tuple(action[1:])][0]
+        print("FLIGHT DURATION = ",flight_duration)
         arrival = state.time_sum(departure,flight_duration)
-        state.planes[airplane_code][0] =  state.time_sum(arrival, protation_time)
+        print("ARRIVAL = ", arrival)
+        state.planes[airplane_code] = ["", ""]
+        state.planes[airplane_code][0] =  state.time_sum(arrival, protation_time)# new time of departure, airplane is added to dictionary
 
-        state.planes[airplane_code][1] = action[2]
+        state.planes[airplane_code][1] = action[2]#new departure airport
 
-        state.legs.remove(tuple(action[1:]))
+        state.legs.remove(tuple(action[1:]))# remove leg already used from list of legs
 
         leg = tuple(action[1:3])
 
@@ -156,7 +175,7 @@ class ASARProblem(search.Problem):
         return
 
 
-class statedict(dict):
+class StateDict(dict):
     """ State Class """
     def __init__(self, legs, planes, profit):
         self.legs = legs
@@ -178,7 +197,7 @@ class statedict(dict):
         h = int(time1[0:2]) + int(time2[0:2])
         m = int(time1[2:4]) + int(time2[2:4])
 
-        if m > 60:
+        if m >= 60:
             m = m - 60
             h = h + 1
         if h < 10:
