@@ -45,15 +45,12 @@ class ASARProblem(search.Problem):
          self.nodes = 0
 
 
-         #planes = { "CS-TUA":["0800","LPMA"], "CS-TVA":["0800","LPFR"]} #planes initial state
          planes_list = [] #initially we don't have a plane and airport defined. The algorithm takes care of that
          for key in p:
              planes_list.append(key)
          planes = dict(zip(planes_list, [None] * len(planes_list)))
-
-
          legs = list(l.keys())
-         #self.initial_state(a, legs, planes)
+
          self.initial = StateDict(legs, planes, 0, self.nodes)
 
          return self
@@ -66,14 +63,6 @@ class ASARProblem(search.Problem):
 
          actions = []
 
-         # if dictionary is empty generate as actions all legs for all airplanes
-       #  if not state.planes:
-        #     for airplane in self.p:
-         #        for legs in self.l:
-          #           actions.append([airplane, legs[0], legs[1]])
-        # print("actions_empty =", actions)
-
-
          for (airplane,info) in state.planes.items():
              if info == None:
                  for leg in state.legs:
@@ -82,7 +71,7 @@ class ASARProblem(search.Problem):
                      arrival = state.time_sum(self.a[leg[0]][0],fligh_duration) #check if the arrival time is after the closing time of the airport
                      if arrival <= self.a[leg[1]][1] and arrival >= self.a[leg[1]][0]: # arrival of aircraft > closing time
                         actions.append([airplane, leg[0], leg[1]])
-                    # print("actions_current = ", actions)
+
              else:
                  for leg in state.legs:
                      if leg[0] == info[1]: #Check if the leg departure airport is equal to the state airport departure for that aricraft
@@ -90,15 +79,13 @@ class ASARProblem(search.Problem):
                          arrival = state.time_sum(info[0],fligh_duration) #check if the arrival time is after the closing time of the airport
                          if arrival <= self.a[leg[1]][1] and arrival >= self.a[leg[1]][0]: # arrival of aircraft > closing time
                              actions.append([airplane,leg[0],leg[1]])
-         #print("ACTIONS" + str(actions))
          return actions
 
      def result(self, state, action):
          """Return the state that results from executing the given
          action in the given state. The action must be one of
          self.actions(state)."""
-         #print("***********")
-        # print("ACTION SELECTED" + str(action))
+
          new_state = copy.deepcopy(state)
 
          if len(new_state.legs) > 0:
@@ -115,19 +102,12 @@ class ASARProblem(search.Problem):
              else:
                  departure = new_state.planes[airplane_code][0]
 
-             # fill initial state
-           #  if not state.planes:
-            #     for airport in self.a:
-              #       if airport == action[1]:
-              #           departure = self.a.get(airport)[0]
-                  #       print("DEPARTURE = ", departure)
-            # else:
-                # departure = state.planes[airplane_code][0]
+
 
              flight_duration = self.l[tuple(action[1:])][0]
-             #print("FLIGHT DURATION = ",flight_duration)
+
              arrival = state.time_sum(departure,flight_duration)
-            # print("ARRIVAL = ", arrival)
+
              new_state.planes[airplane_code] = ["", ""]
              new_state.planes[airplane_code][0] =  new_state.time_sum(arrival, protation_time)# new time of departure, airplane is added to dictionary
 
@@ -150,16 +130,9 @@ class ASARProblem(search.Problem):
              else:
                  new_state.schedule.update({airplane_code:[departure, action[1], action[2]]})
 
-
-         #print("old state")
-         #state.print_state()
-         #print()
-         #print("new state")
-         #new_state.print_state()
          self.nodes = self.nodes + 1
          new_state.code = self.nodes
 
-         #new_state.print_state()
          return new_state
 
 
