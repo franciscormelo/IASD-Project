@@ -42,6 +42,7 @@ class ASARProblem(search.Problem):
          self.p = p
          self.l = l
          self.c = c
+         self.nodes = 0
 
 
          #planes = { "CS-TUA":["0800","LPMA"], "CS-TVA":["0800","LPFR"]} #planes initial state
@@ -53,7 +54,7 @@ class ASARProblem(search.Problem):
 
          legs = list(l.keys())
          #self.initial_state(a, legs, planes)
-         self.initial = StateDict(legs, planes, 0)
+         self.initial = StateDict(legs, planes, 0, self.nodes)
 
          return self
 
@@ -75,26 +76,29 @@ class ASARProblem(search.Problem):
 
          for (airplane,info) in state.planes.items():
              if info == None:
-                 for legs in state.legs:
-                     actions.append([airplane, legs[0], legs[1]])
+                 for leg in state.legs:
+
+                     fligh_duration = self.l[leg][0]
+                     arrival = state.time_sum(self.a[leg[0]][0],fligh_duration) #check if the arrival time is after the closing time of the airport
+                     if arrival <= self.a[leg[1]][1] and arrival >= self.a[leg[1]][0]: # arrival of aircraft > closing time
+                        actions.append([airplane, leg[0], leg[1]])
                     # print("actions_current = ", actions)
              else:
                  for leg in state.legs:
                      if leg[0] == info[1]: #Check if the leg departure airport is equal to the state airport departure for that aricraft
                          fligh_duration = self.l[leg][0]
                          arrival = state.time_sum(info[0],fligh_duration) #check if the arrival time is after the closing time of the airport
-
-                         if arrival <= self.a[leg[1]][1]: # arrival of aircraft > closing time
+                         if arrival <= self.a[leg[1]][1] and arrival >= self.a[leg[1]][0]: # arrival of aircraft > closing time
                              actions.append([airplane,leg[0],leg[1]])
-         print("ACTIONS" + str(actions))
+         #print("ACTIONS" + str(actions))
          return actions
 
      def result(self, state, action):
          """Return the state that results from executing the given
          action in the given state. The action must be one of
          self.actions(state)."""
-         print("***********")
-         print("ACTION SELECTED" + str(action))
+         #print("***********")
+        # print("ACTION SELECTED" + str(action))
          new_state = copy.deepcopy(state)
 
          if len(new_state.legs) > 0:
@@ -147,13 +151,15 @@ class ASARProblem(search.Problem):
                  new_state.schedule.update({airplane_code:[departure, action[1], action[2]]})
 
 
-         print("old state")
-         state.print_state()
-         print()
-         print("new state")
-         new_state.print_state()
+         #print("old state")
+         #state.print_state()
+         #print()
+         #print("new state")
+         #new_state.print_state()
+         self.nodes = self.nodes + 1
+         new_state.code = self.nodes
 
-
+         #new_state.print_state()
          return new_state
 
 
@@ -164,13 +170,13 @@ class ASARProblem(search.Problem):
          state to self.goal or checks for state in self.goal if it is a
          list, as specified in the constructor. Override this method if
          checking against a single self.goal is not enough."""
-         print("YASSSS")
+
          if not state.legs:
 
              for (airplane,info) in state.planes.items():
-                 if info[1] != self.initial.planes[airplane][1]:
-
-                     return False
+                 if info != None:
+                     if info[1] != state.schedule[airplane][1]:
+                         return False
              return True
          else:
              return False
@@ -182,7 +188,6 @@ class ASARProblem(search.Problem):
          state2.  If the path does matter, it will consider c and maybe state1
          and action. The default method costs 1 for every step in the path."""
 
-         print("ENTROU PATH COST")
          leg = tuple(action[1:3])
          airplane_type = self.p[action[0]]
 
@@ -195,19 +200,18 @@ class ASARProblem(search.Problem):
 
 
      def heuristic(self,n):
-
-         return 1
+         h = 0
+         return h
 
      def save(self,fh,state):
-
          if state != None:
              for airplane in state.schedule:
-                 fh.write(airplane + " ")
+                 fh.write("S "+ airplane + " ")
                  sp = str(state.schedule[airplane])
                  sp = sp.replace(',','').replace('[','').replace(']','').replace('\'','')
                  fh.write(sp + "\n")
 
-                 fh.write("P "+ str (state.profit))
+             fh.write("P "+ str (state.profit))
          else:
              fh.write("Infeasible")
 
@@ -216,21 +220,23 @@ class ASARProblem(search.Problem):
 
 class StateDict(dict):
      """ State Class """
-     def __init__(self, legs, planes, profit):
+     def __init__(self, legs, planes, profit, code):
          self.legs = legs
          self.profit = 0
          self.planes = planes
          self.schedule = {}
+         self.code = code
 
      def print_state(self):
          print("PLANES INFO " + str(self.planes))
          print("LEGS LEFT " + str(self.legs))
          print("PLANES SCHEDULES " + str(self.schedule))
          print("PROFIT " + str(self.profit))
+         print("CODE " + str(self.code))
          return
 
      def __hash__(self):
-         return hash(tuple(sorted(self.items())))
+         return hash(self.code)
 
      def time_sum(self,time1, time2):
          """ Time calculator using string data """
@@ -306,17 +312,13 @@ if len(sys.argv)>1:
 # #########
 #     print("---GOAL TEST--- " + str(pb.goal_test(new_state)))
 
-    h =  pb.heuristic
+    test = search.astar_search(pb,pb.heuristic)
 
-    test = search.astar_search(pb,h)
-    print(test)
 
 
 #### TESTES
     with open("OUTPUT_TESTE.txt","w+") as fh:
-
-        #pb.save(fh,new_state)
-        pb.save(fh,test)
+        pb.save(fh,test.state)
 
 else:
     print("Usage: %s <filename>"%(sys.argv[0]))
