@@ -74,7 +74,7 @@ class ASARProblem(search.Problem):
 
          for (airplane,info) in state.planes.items():
              if info == None:
-                 for legs in self.l:
+                 for legs in state.legs:
                      actions.append([airplane, legs[0], legs[1]])
                     # print("actions_current = ", actions)
              else:
@@ -85,6 +85,7 @@ class ASARProblem(search.Problem):
 
                          if arrival <= self.a[leg[1]][1]: # arrival of aircraft > closing time
                              actions.append([airplane,leg[0],leg[1]])
+         print("ACTIONS" + str(actions))
          return actions
 
      def result(self, state, action):
