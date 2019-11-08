@@ -2,6 +2,7 @@
 
 import sys
 sys.path.insert(0, 'aima')
+import copy
 
 import search
 
@@ -92,20 +93,23 @@ class ASARProblem(search.Problem):
          """Return the state that results from executing the given
          action in the given state. The action must be one of
          self.actions(state)."""
-         print(len(state.legs))
-         if len(state.legs) > 0:
+         print("***********")
+         print("ACTION SELECTED" + str(action))
+         new_state = copy.deepcopy(state)
+
+         if len(new_state.legs) > 0:
              airplane_code = action[0]
 
              airplane_type = self.p[airplane_code]# class of the airplane. ex: a320
              protation_time = self.c[airplane_type]
 
-             if state.planes[action[0]] == None:
+             if new_state.planes[action[0]] == None:
                  departure = self.a[action[1]][0]
-                 state.planes[action[0]] = [None] * 2
-                 state.planes[action[0]][0] = departure
-                 state.planes[action[0]][1] = action[1]
+                 new_state.planes[action[0]] = [None] * 2
+                 new_state.planes[action[0]][0] = departure
+                 new_state.planes[action[0]][1] = action[1]
              else:
-                 departure = state.planes[airplane_code][0]
+                 departure = new_state.planes[airplane_code][0]
 
              # fill initial state
            #  if not state.planes:
@@ -120,34 +124,37 @@ class ASARProblem(search.Problem):
              #print("FLIGHT DURATION = ",flight_duration)
              arrival = state.time_sum(departure,flight_duration)
             # print("ARRIVAL = ", arrival)
-             state.planes[airplane_code] = ["", ""]
-             state.planes[airplane_code][0] =  state.time_sum(arrival, protation_time)# new time of departure, airplane is added to dictionary
+             new_state.planes[airplane_code] = ["", ""]
+             new_state.planes[airplane_code][0] =  new_state.time_sum(arrival, protation_time)# new time of departure, airplane is added to dictionary
 
-             state.planes[airplane_code][1] = action[2]#new departure airport
+             new_state.planes[airplane_code][1] = action[2]#new departure airport
 
-             state.legs.remove(tuple(action[1:]))# remove leg already used from list of legs
+             new_state.legs.remove(tuple(action[1:]))# remove leg already used from list of legs
 
              leg = tuple(action[1:3])
 
              index_cost = self.l[leg].index(airplane_type) + 1
              link_cost = self.l[leg][index_cost]
 
-             state.profit = state.profit + int(link_cost)
+             new_state.profit = new_state.profit + int(link_cost)
 
-             if airplane_code in state.schedule: #check if it is the first flight
-                 state.schedule[airplane_code].append(departure)
-                 state.schedule[airplane_code].append(action[1])
-                 state.schedule[airplane_code].append(action[2])
+             if airplane_code in new_state.schedule: #check if it is the first flight
+                 new_state.schedule[airplane_code].append(departure)
+                 new_state.schedule[airplane_code].append(action[1])
+                 new_state.schedule[airplane_code].append(action[2])
 
              else:
-                 state.schedule.update({airplane_code:[departure, action[1], action[2]]})
+                 new_state.schedule.update({airplane_code:[departure, action[1], action[2]]})
 
-         print("***********")
-         print(state.legs)
-         print(state.print_state())
-         print(tuple(action[1:]))
 
-         return state
+         print("old state")
+         state.print_state()
+         print()
+         print("new state")
+         new_state.print_state()
+
+
+         return new_state
 
 
      def goal_test(self, state):
@@ -174,18 +181,22 @@ class ASARProblem(search.Problem):
          is such that the path doesn't matter, this function will only look at
          state2.  If the path does matter, it will consider c and maybe state1
          and action. The default method costs 1 for every step in the path."""
+
+         print("ENTROU PATH COST")
          leg = tuple(action[1:3])
          airplane_type = self.p[action[0]]
 
          index_cost = self.l[leg].index(airplane_type) + 1
          link_cost = self.l[leg][index_cost]
 
-         return c + (1/int(link_cost))
+         cost = c + (1/int(link_cost))
+
+         return cost
 
 
      def heuristic(self,n):
 
-         return 0
+         return 1
 
      def save(self,fh,state):
 
@@ -216,6 +227,7 @@ class StateDict(dict):
          print("LEGS LEFT " + str(self.legs))
          print("PLANES SCHEDULES " + str(self.schedule))
          print("PROFIT " + str(self.profit))
+         return
 
      def __hash__(self):
          return hash(tuple(sorted(self.items())))
