@@ -23,19 +23,19 @@ class ASARProblem(search.Problem):
 
          for string in file:
              if string[0] == "A":
-                 ax = string[2:].split(" ")
+                 ax = string[2:].split()
                  a.update({ax[0]:tuple(ax[1:])})
 
              elif string[0] == "P" :
-                 px = string[2:].split(" ")
+                 px = string[2:].split()
                  p.update({px[0]:px[1]})
 
              elif string[0] == "L":
-                 lx = string[2:].split(" ")
+                 lx = string[2:].split()
                  l.update({tuple(lx[0:2]):tuple(lx[2:])})
 
              elif string[0] == "C":
-                 cx = string[2:].split(" ")
+                 cx = string[2:].split()
                  c.update({cx[0]:cx[1]})
 
          self.a = a
