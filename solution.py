@@ -9,7 +9,6 @@ import search
 class ASARProblem(search.Problem):
      """Airline Scheduling and Routing Problem"""
 
-
      def __init__(self):
          """ Define goal state and initialize a problem """
 
