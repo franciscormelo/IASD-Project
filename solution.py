@@ -291,7 +291,11 @@ if len(sys.argv)>1:
 
 #### TESTES
     with open("OUTPUT_TESTE.txt","w+") as fh:
-        pb.save(fh,test.state)
+        if test == None:
+            pb.save(fh,test)
+        else:
+            pb.save(fh,test.state)
+
 
 else:
     print("Usage: %s <filename>"%(sys.argv[0]))
