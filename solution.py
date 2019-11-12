@@ -75,10 +75,11 @@ class ASARProblem(search.Problem):
              else:
                  for leg in state.legs:
                      if leg[0] == info[1]: #Check if the leg departure airport is equal to the state airport departure for that aricraft
-                         fligh_duration = self.l[leg][0]
-                         arrival = state.time_sum(info[0],fligh_duration) #check if the arrival time is after the closing time of the airport
-                         if arrival <= self.a[leg[1]][1] and arrival >= self.a[leg[1]][0]: # arrival of aircraft > closing time
-                             actions.append([airplane,leg[0],leg[1]])
+                         if info[0] <= self.a[info[1]][1] and info[0] >= self.a[info[1]][0]:# departure is before closing time of the airport
+                            fligh_duration = self.l[leg][0]
+                            arrival = state.time_sum(info[0],fligh_duration) #check if the arrival time is after the closing time of the airport
+                            if arrival <= self.a[leg[1]][1] and arrival >= self.a[leg[1]][0]: # arrival of aircraft > closing time
+                                actions.append([airplane,leg[0],leg[1]])
          return actions
 
      def result(self, state, action):
@@ -131,11 +132,7 @@ class ASARProblem(search.Problem):
 
          self.nodes = self.nodes + 1
          new_state.code = self.nodes
-         print("***")
-         state.print_state()
-         print("******")
-         new_state.print_state()
-
+         #print(new_state.code)
          return new_state
 
 
@@ -253,10 +250,10 @@ if len(sys.argv)>1:
         pb.load(fh)
         fh.close()
 
-#     print(pb.a)
-#     print(pb.p)
-#      print(pb.l)
-#     print(pb.c)
+        print(pb.a)
+        print(pb.p)
+        print(pb.l)
+        print(pb.c)
 # #
 #     print("##################")
 #     #initial state for testing
