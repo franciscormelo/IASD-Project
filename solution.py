@@ -131,6 +131,8 @@ class ASARProblem(search.Problem):
 
          self.nodes = self.nodes + 1
          new_state.code = self.nodes
+         #new_state.print_state()
+         #print(new_state.code)
 
          return new_state
 
@@ -142,7 +144,6 @@ class ASARProblem(search.Problem):
          state to self.goal or checks for state in self.goal if it is a
          list, as specified in the constructor. Override this method if
          checking against a single self.goal is not enough."""
-
          if not state.legs:
 
              for (airplane,info) in state.planes.items():
@@ -166,16 +167,31 @@ class ASARProblem(search.Problem):
          index_cost = self.l[leg].index(airplane_type) + 1
          link_cost = self.l[leg][index_cost]
 
-         cost = c + (1/int(link_cost))
+         cost = c + (1/float(link_cost))
 
          return cost
 
 
+
      def heuristic(self,n):
-         h = 0
+         """ """
+         state = n.state
+         if self.goal_test(state): # goal state --> heuristic = 0
+             return 0
+         est_cost = 0
+
+         if not state.legs:
+             return 0
+
+         for leg in state.legs:
+             plane_profit = self.l[leg][1:]
+             profit = plane_profit[1::2]
+             est_cost = est_cost + int(max(profit))
+             h = 1/float(est_cost)
          return h
 
      def save(self,fh,state):
+         print(int(state.code) + 1)
          if state != None:
              for airplane in state.schedule:
                  fh.write("S "+ airplane + " ")
@@ -239,7 +255,7 @@ if len(sys.argv)>1:
 
 #     print(pb.a)
 #     print(pb.p)
-#     print(pb.l)
+#      print(pb.l)
 #     print(pb.c)
 # #
 #     print("##################")
