@@ -2,8 +2,7 @@
 
 import sys
 sys.path.insert(0, 'aima')
-#! /usr/bin/env python3
-#! /usr/bin/env python3
+
 
 import copy
 import math
