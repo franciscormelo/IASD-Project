@@ -81,7 +81,7 @@ class Problem:
 
 
         self.nb_sensors = len(self.sensors) #number of sensores
-        
+
         #Create Baysean Network
         self.BNet = probability.BayesNet()
 
@@ -103,8 +103,9 @@ class Problem:
         # Place here your code to determine the maximum likelihood solution
         # returning the solution room name and likelihood
         # use probability.elimination_ask() to perform probabilistic inference
-        # probability.elimination_ask()
-        return (room, likelihood)
+        print(probability.elimination_ask('hall', dict(s1=False, s2=False,s3=False), self.BNet).show_approx())
+        #return (room, likelihood)
+        pass
 
 def solver(input_file):
     return Problem(input_file).solve()
@@ -124,6 +125,7 @@ if len(sys.argv)>1:
         print("#################################")
         print(pb.BNet)
         print(pb.BNet.variable_node('s3').cpt)
+        pb.solve()
         #solver(fh)
         fh.close()
 else:
