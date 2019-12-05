@@ -31,7 +31,7 @@ class Problem:
                 sensors = string[2:].split()
 
             elif string[0] == "P":  #  The propagation probability
-                probability = string[2:]
+                prob = string[2:]
 
             elif string[0] == "M":  # A measurement
                 self.nb_measurements += 1
@@ -41,14 +41,16 @@ class Problem:
         self.sensors = {}
         self.measurements = [[] for i in range(self.nb_measurements)]
 
-
+        # split connection by ,
         for i in connections:
             aux1 = i.split(",")
             self.connections.append(tuple(aux1))
+            # split sensor info  by :
         for j in sensors:
             aux2 = j.split(":")
             self.sensors.update({aux2[0]: tuple([aux2[1], float(aux2[2]), float(aux2[3])])})
 
+        # split measurements info
         for idx, k in enumerate(measurements):
             aux2 = k.split()
             for l in aux2:
@@ -59,24 +61,41 @@ class Problem:
         # Saves the problem information in problem attributes
         self.rooms = rooms
         self.connections = tuple(self.connections)
-        #self.sensors = tuple(self.sensors)
-        self.probability = probability
+        self.prob = prob
         self.measurements = tuple(self.measurements)
 
-        self.map = {}
+        self.map = {} # Map - Adjacent rooms of each room
 
         # Dictionary with rooms connections
         for room in self.rooms:
             self.map.update({room:[]})
 
-
+        # Map - Adjacent rooms of each room
         for connect in self.connections:
             self.map[connect[0]].append(connect[1])
             self.map[connect[1]].append(connect[0])
 
+
         self.T = self.nb_measurements
-        # probability.BayesNet()
-        return
+
+
+
+        self.nb_sensors = len(self.sensors) #number of sensores
+        
+        #Create Baysean Network
+        self.BNet = probability.BayesNet()
+
+        for sensor in self.sensors:
+            room_sensor = self.sensors[sensor][0]
+            TPR = self.sensors[sensor][1]
+            FPR = self.sensors[sensor][2]
+            # Parents --> Rooms with sensors
+            self.BNet.add((room_sensor,'',0.5))
+            # Childs -> Sensors
+            self.BNet.add((sensor,room_sensor,{True: TPR, False: FPR}))
+
+
+
 
 
 
@@ -99,9 +118,12 @@ if len(sys.argv)>1:
         print("ROOMS: ",pb.rooms)
         print("CONNECTIONS: ",pb.connections)
         print("SENSORES: ",pb.sensors)
-        print("PROBABILITY: ",pb.probability)
+        print("PROBABILITY: ",pb.prob)
         print("MEASUREMENTS: ",pb.measurements)
         print("MAP: ", pb.map)
+        print("#################################")
+        print(pb.BNet)
+        print(pb.BNet.variable_node('s3').cpt)
         #solver(fh)
         fh.close()
 else:
