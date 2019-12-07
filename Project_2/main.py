@@ -71,9 +71,10 @@ class Problem:
             self.map.update({room:[]})
 
         # Map - Adjacent rooms of each room
-        for connect in self.connections:
-            self.map[connect[0]].append(connect[1])
-            self.map[connect[1]].append(connect[0])
+        if not self.connections:
+            for connect in self.connections:
+                self.map[connect[0]].append(connect[1])
+                self.map[connect[1]].append(connect[0])
 
 
         self.T = self.nb_measurements
@@ -172,7 +173,7 @@ if len(sys.argv)>1:
         #print(probability.elimination_ask('R02_t4', dict(S03_t1=False, S02_t1=True, S01_t2=True,S02_t2=False, S03_t2=False, S03_t3=True, S01_t4=True, S02_t4=True), pb.BNet).show_approx())
         solution = solver(fh)
         print(solution)
-        
+
         fh.close()
 else:
     print("Usage: %s <filename>"%(sys.argv[0]))
