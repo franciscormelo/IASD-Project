@@ -61,7 +61,7 @@ class Problem:
         # Saves the problem information in problem attributes
         self.rooms = rooms
         self.connections = tuple(self.connections)
-        self.prob = prob
+        self.prob = float(prob)
         self.measurements = tuple(self.measurements)
 
         self.map = {} # Map - Adjacent rooms of each room
@@ -85,27 +85,71 @@ class Problem:
         #Create Baysean Network
         self.BNet = probability.BayesNet()
 
-        for sensor in self.sensors:
-            room_sensor = self.sensors[sensor][0]
-            TPR = self.sensors[sensor][1]
-            FPR = self.sensors[sensor][2]
-            # Parents --> Rooms with sensors
-            self.BNet.add((room_sensor,'',0.5))
-            # Childs -> Sensors
-            self.BNet.add((sensor,room_sensor,{True: TPR, False: FPR}))
+        for time in range(self.T):
+
+            time = time + 1
+
+            if time == 1: # if first time, rooms don't have parents
+                for room in self.map: #add rooms as parent nodes
+                    roomT = None
+                    roomT = room + '_t' + str(time)
+                    self.BNet.add((roomT,'',0.5)) # all rooms are parents initially
+
+            else: #if time > 1 -> rooms have parents -> rooms in the previous time and adjacent rooms
+                for room in self.map:
+                    roomT = None
+                    nb_parents = 0
+                    room_parents = None
+                    roomT = room + '_t' + str(time)
+                    room_parents = room + '_t' + str(time-1)
+                    nb_parents += 1
+
+                    for adjacents in self.map[room]:
+                        if adjacents != []:
+                            room_adjacent = adjacents
+                            room_parents = room_parents +" " + room_adjacent + '_t' + str(time-1)
+                            nb_parents +=1
 
 
+                    if nb_parents == 1:
+                        self.BNet.add((roomT, room_parents, {True:1.0, False:0.0}))
+                    elif nb_parents == 2:
+                        self.BNet.add((roomT, room_parents, {(True, True): 1.0, (True, False): 1.0, (False, True): self.prob, (False, False): 0.0}))
+            # *****Falta melhorar quando sao mais do que 2 pais, tnetar fazer uma tabela de probabilidades automatica******
 
-
-
+            for meas in self.measurements[time-1]: # add sensor nodes as childs of the room where the sensor is in the current time
+                sensor = meas[0]
+                parent_room = self.sensors[sensor][0] # nodes
+                TPR = self.sensors[sensor][1]
+                FPR = self.sensors[sensor][2]
+                self.BNet.add((sensor+'_t'+str(time),parent_room + '_t'+ str(time),{True: TPR, False: FPR}))
 
     def solve(self):
         # Place here your code to determine the maximum likelihood solution
         # returning the solution room name and likelihood
         # use probability.elimination_ask() to perform probabilistic inference
-        print(probability.elimination_ask('hall', dict(s1=False, s2=False,s3=False), self.BNet).show_approx())
-        #return (room, likelihood)
-        pass
+
+        time = 1
+        # Evidence String
+        evidence = {}
+        for measurements in self.measurements:
+            for measurement in measurements:
+                if measurement[1] == "F":
+                    evidence.update({measurement[0]+"_t"+ str(time): False})
+
+                else:
+                    evidence.update({measurement[0]+"_t"+ str(time): True})
+            time +=1
+
+        room = ""
+        likelihood = 0
+        for room_search in self.rooms:
+            room_query = room_search + "_t" + str(self.T)
+            prob = probability.elimination_ask(room_query, evidence, self.BNet)
+            if prob[True] > likelihood:
+                likelihood = prob[True]
+                room = room_search
+        return (room, likelihood)
 
 def solver(input_file):
     return Problem(input_file).solve()
@@ -114,19 +158,21 @@ def solver(input_file):
 ######## MAIN #######
 if len(sys.argv)>1:
     with open(sys.argv[1]) as fh:
-        print(sys.argv[1])
-        pb = Problem(fh)
-        print("ROOMS: ",pb.rooms)
-        print("CONNECTIONS: ",pb.connections)
-        print("SENSORES: ",pb.sensors)
-        print("PROBABILITY: ",pb.prob)
-        print("MEASUREMENTS: ",pb.measurements)
-        print("MAP: ", pb.map)
-        print("#################################")
-        print(pb.BNet)
-        print(pb.BNet.variable_node('s3').cpt)
-        pb.solve()
-        #solver(fh)
+        #print(sys.argv[1])
+        #pb = Problem(fh)
+        #print("ROOMS: ",pb.rooms)
+        #print("CONNECTIONS: ",pb.connections)
+        #print("SENSORES: ",pb.sensors)
+        #print("PROBABILITY: ",pb.prob)
+        #print("MEASUREMENTS: ",pb.measurements)
+        #print("MAP: ", pb.map)
+        #print("#################################")
+        #print(pb.BNet)
+
+        #print(probability.elimination_ask('R02_t4', dict(S03_t1=False, S02_t1=True, S01_t2=True,S02_t2=False, S03_t2=False, S03_t3=True, S01_t4=True, S02_t4=True), pb.BNet).show_approx())
+        solution = solver(fh)
+        print(solution)
+        
         fh.close()
 else:
     print("Usage: %s <filename>"%(sys.argv[0]))
