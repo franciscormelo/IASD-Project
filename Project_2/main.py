@@ -89,15 +89,16 @@ class Problem:
         #Create Baysean Network
         self.BNet = probability.BayesNet()
 
+        # Creates the Baysean Network taking into account each timestamp
         for time in range(self.T):
 
-            time = time + 1
+            time = time + 1 # Time starts at 1
 
-            if time == 1: # if first time, rooms don't have parents
-                for room in self.map: #add rooms as parent nodes
+            if time == 1: # in T = 1, rooms don't have parents
+                for room in self.map: # add rooms as parent nodes
                     roomT = None
                     roomT = room + '_t' + str(time)
-                    self.BNet.add((roomT,'',0.5)) # all rooms are parents initially
+                    self.BNet.add((roomT,'',0.5)) # Initially all rooms are parents
 
             else: #if time > 1 -> rooms have parents -> rooms in the previous time and adjacent rooms
                 for room in self.map:
@@ -121,11 +122,11 @@ class Problem:
                         self.BNet.add((roomT, room_parents, {(True, True): 1.0, (True, False): 1.0, (False, True): self.prob, (False, False): 0.0}))
             # *****Falta melhorar quando sao mais do que 2 pais, tnetar fazer uma tabela de probabilidades automatica******
 
-            for meas in self.measurements[time-1]: # add sensor nodes as childs of the room where the sensor is in the current time
+            for meas in self.measurements[time-1]: # add sensor nodes as childs of the room where the sensor is located in the current timestamp
                 sensor = meas[0]
-                parent_room = self.sensors[sensor][0] # nodes
-                TPR = self.sensors[sensor][1]
-                FPR = self.sensors[sensor][2]
+                parent_room = self.sensors[sensor][0] # Parent node of the sensor
+                TPR = self.sensors[sensor][1] # True Positive Rate
+                FPR = self.sensors[sensor][2] # False Positive Rate
                 self.BNet.add((sensor+'_t'+str(time),parent_room + '_t'+ str(time),{True: TPR, False: FPR}))
 
     def solve(self):
@@ -147,13 +148,16 @@ class Problem:
 
         room = ""
         likelihood = 0
+        # Finds the room with the highest likelihood given the evidence
         for room_search in self.rooms:
             room_query = room_search + "_t" + str(self.T)
+
             prob = probability.elimination_ask(room_query, evidence, self.BNet)
+
             if prob[True] > likelihood:
                 likelihood = prob[True]
-                print(likelihood)
                 room = room_search
+
         return (room, likelihood)
 
 def solver(input_file):
