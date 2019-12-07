@@ -71,10 +71,13 @@ class Problem:
             self.map.update({room:[]})
 
         # Map - Adjacent rooms of each room
-        #if not self.connections:
-        for connect in self.connections:
-            self.map[connect[0]].append(connect[1])
-            self.map[connect[1]].append(connect[0])
+        if not self.connections:
+            # No connections ---> Empty map
+            pass
+        else:
+            for connect in self.connections:
+                self.map[connect[0]].append(connect[1])
+                self.map[connect[1]].append(connect[0])
 
 
         self.T = self.nb_measurements
