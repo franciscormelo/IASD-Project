@@ -178,7 +178,6 @@ if len(sys.argv)>1:
         #print("#################################")
         #print(pb.BNet)
 
-        #print(probability.elimination_ask('R02_t4', dict(S03_t1=False, S02_t1=True, S01_t2=True,S02_t2=False, S03_t2=False, S03_t3=True, S01_t4=True, S02_t4=True), pb.BNet).show_approx())
         solution = solver(fh)
         print(solution)
 
