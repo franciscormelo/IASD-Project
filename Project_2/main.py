@@ -135,7 +135,8 @@ class Problem:
         # use probability.elimination_ask() to perform probabilistic inference
 
         time = 1
-        # Evidence String
+        # Add all evidences along time to the evidence dictionary
+        # Evidences ---> Measurements form t=1 to t=T
         evidence = {}
         for measurements in self.measurements:
             for measurement in measurements:
