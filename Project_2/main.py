@@ -71,10 +71,10 @@ class Problem:
             self.map.update({room:[]})
 
         # Map - Adjacent rooms of each room
-        if not self.connections:
-            for connect in self.connections:
-                self.map[connect[0]].append(connect[1])
-                self.map[connect[1]].append(connect[0])
+        #if not self.connections:
+        for connect in self.connections:
+            self.map[connect[0]].append(connect[1])
+            self.map[connect[1]].append(connect[0])
 
 
         self.T = self.nb_measurements
@@ -149,6 +149,7 @@ class Problem:
             prob = probability.elimination_ask(room_query, evidence, self.BNet)
             if prob[True] > likelihood:
                 likelihood = prob[True]
+                print(likelihood)
                 room = room_search
         return (room, likelihood)
 
