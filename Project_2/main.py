@@ -26,7 +26,10 @@ class Problem:
                 rooms = tuple(string[2:].split())
 
             elif string[0] == "C":  # The set of connection
-                connections = tuple(string[2:].split(" "))
+                if not string[2:]:
+                    connections = []
+                else:
+                    connections = tuple(string[2:].split(" "))
 
             elif string[0] == "S":  # The set of sensors
                 sensors = string[2:].split()
@@ -72,10 +75,7 @@ class Problem:
             self.map.update({room:[]})
 
         # Map - Adjacent rooms of each room
-        if not self.connections:
-            # No connections ---> Empty map
-            pass
-        else:
+        if self.connections:
             for connect in self.connections:
                 self.map[connect[0]].append(connect[1])
                 self.map[connect[1]].append(connect[0])
@@ -138,7 +138,7 @@ class Problem:
                             elif key[0] == False:
                                 if True in key:
                                     logic_table[key] = self.prob
-                        print(logic_table)
+                        #print(logic_table)
                         self.BNet.add((roomT,room_parents,logic_table))
                     #    self.BNet.add((roomT, room_parents, {(True, True): 1.0, (True, False): 1.0, (False, True): self.prob, (False, False): 0.0}))
                     #elif nb_parents == 3:
