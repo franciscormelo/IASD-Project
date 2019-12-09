@@ -124,6 +124,7 @@ class Problem:
                     if nb_parents == 1:
                         self.BNet.add((roomT, room_parents, {True:1.0, False:0.0}))
 
+                    #generate truth table based on the number of parents
                     elif nb_parents > 1:
                         lst = []
                         lst = list(itertools.product([True, False], repeat=nb_parents))
@@ -132,10 +133,12 @@ class Problem:
                         for key in logic_table:
                             if key[0] == True:
                                 logic_table[key] = 1.0
-                            elif key[0] == False and all(list(key)):
+                            elif key[0] == False and all(key):
                                 logic_table[key] = 0.0
-                            elif key[0] == False and not all(list(key)):
-                                logic_table[key] = self.prob
+                            elif key[0] == False:
+                                if True in key:
+                                    logic_table[key] = self.prob
+                        print(logic_table)
                         self.BNet.add((roomT,room_parents,logic_table))
                     #    self.BNet.add((roomT, room_parents, {(True, True): 1.0, (True, False): 1.0, (False, True): self.prob, (False, False): 0.0}))
                     #elif nb_parents == 3:
@@ -204,6 +207,8 @@ if len(sys.argv)>1:
 
         solution = solver(fh)
         print(solution)
+        a = (False,True,True)
+        print(not all(a))
 
         fh.close()
 else:
