@@ -140,14 +140,6 @@ class Problem:
                                     logic_table[key] = self.prob
                         #print(logic_table)
                         self.BNet.add((roomT,room_parents,logic_table))
-                    #    self.BNet.add((roomT, room_parents, {(True, True): 1.0, (True, False): 1.0, (False, True): self.prob, (False, False): 0.0}))
-                    #elif nb_parents == 3:
-                    #    self.BNet.add((roomT, room_parents, {(True, True,True): 1.0, (True, True,False): 1.0, (True, False,True): 1.0,(True, False,False): 1.0, (False, True,True): self.prob,(False, True,False): self.prob,(False,False,True):self.prob, (False, False,False): 0.0}))
-                    #elif nb_parents == 4:
-                    #    self.BNet.add((roomT, room_parents, {(True, True,True,True): 1.0, (True, True,True,False): 1.0, (True, True,False,True): 1.0,(True, True,False,False): 1.0,(True, False,True,True): 1.0,(True, False,True,False): 1.0,(True, False,False,True): 1.0,(True, False,False,False): 1.0, (False, True,True,True): self.prob, (False, True,True,False): self.prob,(False, True,False,True): self.prob,(False, True,False,False): self.prob,(False, False,True,True): self.prob,(False, False,True,False): self.prob,(False, False,False,True): self.prob, (False, False,False,False): 0.0}))
-
-
-            # *****Falta melhorar quando sao mais do que 2 pais, tnetar fazer uma tabela de probabilidades automatica******
             for meas in self.measurements[time-1]: # add sensor nodes as childs of the room where the sensor is located in the current timestamp
                 sensor = meas[0]
                 parent_room = self.sensors[sensor][0] # Parent node of the sensor
@@ -206,10 +198,6 @@ if len(sys.argv)>1:
         #print(pb.BNet)
 
         solution = solver(fh)
-        print(solution)
-        a = (False,True,True)
-        print(not all(a))
-
         fh.close()
 else:
     print("Usage: %s <filename>"%(sys.argv[0]))
