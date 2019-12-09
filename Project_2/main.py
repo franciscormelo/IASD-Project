@@ -1,6 +1,7 @@
 import sys
 sys.path.insert(0, 'aima')
 import probability
+import itertools
 
 class Problem:
 
@@ -80,6 +81,7 @@ class Problem:
                 self.map[connect[1]].append(connect[0])
 
 
+
         self.T = self.nb_measurements
 
 
@@ -109,19 +111,40 @@ class Problem:
                     room_parents = room + '_t' + str(time-1)
                     nb_parents += 1
 
-                    for adjacents in self.map[room]:
-                        if adjacents != []:
-                            room_adjacent = adjacents
+
+
+                    if self.map[room]:
+                        for room_index in range(len(self.map[room])):
+                            room_adjacent = self.map[room][room_index]
                             room_parents = room_parents +" " + room_adjacent + '_t' + str(time-1)
                             nb_parents +=1
 
 
+
                     if nb_parents == 1:
                         self.BNet.add((roomT, room_parents, {True:1.0, False:0.0}))
-                    elif nb_parents == 2:
-                        self.BNet.add((roomT, room_parents, {(True, True): 1.0, (True, False): 1.0, (False, True): self.prob, (False, False): 0.0}))
-            # *****Falta melhorar quando sao mais do que 2 pais, tnetar fazer uma tabela de probabilidades automatica******
 
+                    elif nb_parents > 1:
+                        lst = []
+                        lst = list(itertools.product([True, False], repeat=nb_parents))
+                        logic_table = {}
+                        logic_table = dict((i,0) for i in lst)
+                        for key in logic_table:
+                            if key[0] == True:
+                                logic_table[key] = 1.0
+                            elif key[0] == False and all(list(key)):
+                                logic_table[key] = 0.0
+                            elif key[0] == False and not all(list(key)):
+                                logic_table[key] = self.prob
+                        self.BNet.add((roomT,room_parents,logic_table))
+                    #    self.BNet.add((roomT, room_parents, {(True, True): 1.0, (True, False): 1.0, (False, True): self.prob, (False, False): 0.0}))
+                    #elif nb_parents == 3:
+                    #    self.BNet.add((roomT, room_parents, {(True, True,True): 1.0, (True, True,False): 1.0, (True, False,True): 1.0,(True, False,False): 1.0, (False, True,True): self.prob,(False, True,False): self.prob,(False,False,True):self.prob, (False, False,False): 0.0}))
+                    #elif nb_parents == 4:
+                    #    self.BNet.add((roomT, room_parents, {(True, True,True,True): 1.0, (True, True,True,False): 1.0, (True, True,False,True): 1.0,(True, True,False,False): 1.0,(True, False,True,True): 1.0,(True, False,True,False): 1.0,(True, False,False,True): 1.0,(True, False,False,False): 1.0, (False, True,True,True): self.prob, (False, True,True,False): self.prob,(False, True,False,True): self.prob,(False, True,False,False): self.prob,(False, False,True,True): self.prob,(False, False,True,False): self.prob,(False, False,False,True): self.prob, (False, False,False,False): 0.0}))
+
+
+            # *****Falta melhorar quando sao mais do que 2 pais, tnetar fazer uma tabela de probabilidades automatica******
             for meas in self.measurements[time-1]: # add sensor nodes as childs of the room where the sensor is located in the current timestamp
                 sensor = meas[0]
                 parent_room = self.sensors[sensor][0] # Parent node of the sensor
