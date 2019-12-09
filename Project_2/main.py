@@ -198,6 +198,7 @@ if len(sys.argv)>1:
         #print(pb.BNet)
 
         solution = solver(fh)
+        print(solution)
         fh.close()
 else:
     print("Usage: %s <filename>"%(sys.argv[0]))
